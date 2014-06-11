@@ -1,0 +1,25 @@
+[
+{
+"operatorID": "011", 
+"operation": [ 
+{"id": "1", "motion": "update", "table": "axis", "objectrecord": "11","column": "long_text","value":"12"},
+{"id": "2", "motion": "update", "table": "axis", "objectrecord": "35","column": "short_text","value":"12"},
+{"id": "3", "motion": "insert", "table": "axis", "objectrecord": "00", "column": "short_text","value":"12"},
+{"id": "4", "motion": "delete", "table": "axis", "objectrecord": "35", "column": "00","value":"00"}
+]
+} ,
+{
+"operatorID": "012", 
+"operation": [ 
+{"id": "1", "value": "insert "}, 
+{"id": "2", "value": "update"} 
+]
+},
+{
+"operatorID": "013", 
+"operation": [ 
+{"id": "1", "value": "insert "}, 
+{"id": "2", "value": "update"} 
+]
+}
+]

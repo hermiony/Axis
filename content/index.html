@@ -1,0 +1,524 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>SlickGrid example: CompositeEditor</title>
+  <link rel="stylesheet" href="../slick.grid.css" type="text/css"/>
+  <link rel="stylesheet" href="../css/smoothness/jquery-ui-1.8.16.custom.css" type="text/css"/>
+  <link rel="stylesheet" href="examples.css" type="text/css"/>
+  <style>
+    .cell-title {
+      font-weight: bold;
+    }
+
+    .cell-effort-driven {
+      text-align: center;
+    }
+
+    .item-details-form {
+      z-index: 10000;
+      display: inline-block;
+      border: 1px solid black;
+      margin: 8px;
+      padding: 10px;
+      background: #efefef;
+      -moz-box-shadow: 0px 0px 15px black;
+      -webkit-box-shadow: 0px 0px 15px black;
+      box-shadow: 0px 0px 15px black;
+
+      position: absolute;
+      top: 10px;
+      left: 150px;
+    }
+
+    .item-details-form-buttons {
+      float: right;
+    }
+
+    .item-details-label {
+      margin-left: 10px;
+      margin-top: 20px;
+      display: block;
+      font-weight: bold;
+    }
+
+    .item-details-editor-container {
+      width: 200px;
+      height: 20px;
+      border: 1px solid silver;
+      background: white;
+      display: block;
+      margin: 10px;
+      margin-top: 4px;
+      padding: 0;
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+  </style>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: White;
+            overflow: auto;
+        }
+
+        body {
+            font: 11px Helvetica, Arial, sans-serif;
+        }
+
+        #container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        #description {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 25em;
+            background: beige;
+            border: solid 1px gray;
+            z-index: 1000;
+        }
+
+        #description h2 {
+            padding-left: 0.5em;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container"></div>
+<div id="description">
+    <h2>Demonstrates:</h2>
+    <div id = "get"></div>
+    <ul>
+        <li>instructor1</li>
+        <li>instructor2</li>
+        <li>instructor3</li>
+    </ul>
+    <h2>View Source:</h2>
+    <button onclick="undo()"><img src="../images/arrow_undo.png" align="absmiddle"> Undo</button>
+   <!-- <button onclick="save()">save</button>-->
+    <button onclick="del()">delete</button>
+    <button onclick="openDetails()">Open Item Edit for active row</button>
+    <button onclick="updateData()">save</button>
+<!--    <h2>Connect to MySQL:</h2>
+    INSERT</BR>
+    long_text: <input id = "long" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Long_text')">insert long_text</button>
+    <br/>
+    short_text: <input id = "short" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Short_text')">insert short_text</button>
+    <br/>
+    number: <input id = "number" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Number')">insert by Number</button>
+    </BR>
+    Categories: <input id = "Categories" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Categories')">insert Categories</button>
+    </BR>
+    Date: <input id = "Date" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Date')">insert Date</button>
+    </BR>
+    URL: <input id = "URL" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('URL')">insert URL</button>
+    </BR>
+    Image: <input id = "Image" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Image')">insert by Image</button>
+    </BR>
+
+    delete</BR>
+    id: <input id = "id" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="loadXMLDocdelete()">delete by id</button>
+    <br/>
+
+
+    update</BR>
+
+    <button type="button" onclick="loadXMLDocupdate('Long_text')">update by Long_text</button>
+    <button type="button" onclick="loadXMLDocupdate('Short_text')">update by Short_text</button>
+    <button type="button" onclick="loadXMLDocupdate('Number')">update by Number</button>
+    <button type="button" onclick="loadXMLDocupdate('Date')">update by Date</button>
+    <button type="button" onclick="loadXMLDocupdate('URL')">update by URL</button>
+    <button type="button" onclick="loadXMLDocupdate('Image')">update by Image</button>
+    <button type="button" onclick="loadXMLDocupdate('Categories')">update by Categories</button>-->
+</div>
+<script id="itemDetailsTemplate" type="text/x-jquery-tmpl">
+  <div class='item-details-form'>
+    {{each columns}}
+    <div class='item-details-label'>
+      ${name}
+    </div>
+    <div class='item-details-editor-container' data-editorid='${id}'></div>
+    {{/each}}
+
+    <hr/>
+    <div class='item-details-form-buttons'>
+      <button data-action='save'>Save</button>
+      <button data-action='cancel'>Cancel</button>
+    </div>
+  </div>
+</script>
+
+
+<script src="../lib/firebugx.js"></script>
+
+<script src="../lib/jquery-1.7.min.js"></script>
+<script src="../lib/jquery-ui-1.8.16.custom.min.js"></script>
+<script src="../lib/jquery.event.drag-2.2.js"></script>
+<script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+
+<script src="../slick.core.js"></script>
+<script src="../plugins/slick.cellrangeselector.js"></script>
+<script src="../plugins/slick.cellselectionmodel.js"></script>
+<script src="../slick.formatters.js"></script>
+<script src="../slick.editors.js"></script>
+<script src="../slick.grid.js"></script>
+<script src="slick.compositeeditor.js"></script>
+<script>
+
+    function InsertByLong(field, value)
+    {
+
+        $.ajax({
+            type: "POST",
+            url: "/insert/"+field+"&"+value
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+                });
+    }
+
+    function loadXMLDocdelete(id)
+    {
+        $.ajax({
+            type: "POST",
+            url: "/deletel/"+id
+
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+                });
+    }
+
+    function update(id,value,table,field ) {  //table need to be set
+        $.ajax({
+            type: "POST",
+            url: "/update/"+id+"&"+field+"&"+value
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+                });
+    }
+    function updateAllData(sum,column,field,value) {
+        $.ajax({
+            type: "POST",
+            url: "/updateall/"+sum+"&+"+column+"&"+field+"&"+value
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+
+                });
+    }
+    function insertAllData(sum,column,field,value) {
+        $.ajax({
+            type: "POST",
+            url: "/insertall/"+sum+"&+"+column+"&"+field+"&"+value
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+
+                });
+    }
+
+</script>
+<script>
+  function requiredFieldValidator(value) {
+    if (value == null || value == undefined || !value.length) {
+      return {valid: false, msg: "This is a required field"};
+    } else {
+      return {valid: true, msg: null};
+    }
+  }
+
+  var grid;
+  var data = [];
+  var columns = [
+    {id: "id", name: "ID", field: "id", width: 120, cssClass: "cell-title", editor: Slick.Editors.Text, validator: requiredFieldValidator,sortable: true},
+    {id: "ll", name: "Long_text", field: "ll", width: 100, editor: Slick.Editors.LongText},
+    {id: "short", name: "Short_text", field: "short", editor: Slick.Editors.Text},
+    {id: "number", name: "Number", field: "number", width: 80, resizable: false, editor: Slick.Editors.Text},
+    {id: "image", name: "Image", field: "image", minWidth: 60, editor: Slick.Editors.Text},
+    {id: "date", name: "Date", field: "date", minWidth: 60, editor: Slick.Editors.Date,sortable: true},
+    {id: "ca", name: "Categories",field: "ca", width: 80, minWidth: 20, maxWidth: 80, editor: Slick.Editors.Text}
+  ];
+  function dayFormatter(row, cell, value, columnDef, dataContext) {
+      return value + ' days';
+  }
+
+  function dateFormatter(row, cell, value, columnDef, dataContext) {
+      return value.getMonth() + '/' + value.getDate() + '/' + value.getFullYear();
+  }
+  var options = {
+      editable: true,
+      enableAddRow: true,
+      enableCellNavigation: true,
+      enableColumnReorder: false,
+      multiColumnSort: true,
+      asyncEditorLoading: false,
+      autoEdit: false,
+      editCommandHandler: queueAndExecuteCommand
+  };
+  var commandQueue = [];
+
+  function queueAndExecuteCommand(item, column, editCommand) {
+      commandQueue.push(editCommand);
+      editCommand.execute();
+  }
+
+  function undo() {
+      var command = commandQueue.pop();
+      if (command && Slick.GlobalEditorLock.cancelCurrentEdit()) {
+          command.undo();
+          grid.gotoCell(command.row, command.cell, false);
+      }
+  }
+
+  function openDetails() {
+
+    if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
+      return;
+    }
+
+    var $modal = $("<div class='item-details-form'></div>");
+
+    $modal = $("#itemDetailsTemplate")
+        .tmpl({
+          context: grid.getDataItem(grid.getActiveCell().row),
+          columns: columns
+        })
+        .appendTo("body");
+
+    $modal.keydown(function (e) {
+      if (e.which == $.ui.keyCode.ENTER) {
+        grid.getEditController().commitCurrentEdit();
+        e.stopPropagation();
+        e.preventDefault();
+      } else if (e.which == $.ui.keyCode.ESCAPE) {
+        grid.getEditController().cancelCurrentEdit();
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    });
+
+    $modal.find("[data-action=save]").click(function () {
+      grid.getEditController().commitCurrentEdit();
+    });
+
+    $modal.find("[data-action=cancel]").click(function () {
+      grid.getEditController().cancelCurrentEdit();
+    });
+
+
+    var containers = $.map(columns, function (c) {
+      return $modal.find("[data-editorid=" + c.id + "]");
+    });
+
+    var compositeEditor = new Slick.CompositeEditor(
+        columns,
+        containers,
+        {
+          destroy: function () {
+            $modal.remove();
+          }
+        }
+    );
+
+    grid.editActiveCell(compositeEditor);
+  }
+
+  $(function () {
+      var j = 0;
+      $.getJSON( "list" )
+              .done(function( json ) {
+                  console.log( "JSON Data: " + json );
+                  $.each(json, function(i, field) {
+                      var d = (data[j] = {});
+                      d["id"] = field.ID;
+                      d["ll"] = field.Long_text;
+                      d["short"] = field.Short_text;
+                      d["number"] = field.Number;
+                      d["image"] = field.Image;
+                      d["date"] = field.Date;
+                      d["ca"] =field.Categories;
+                      j++;
+
+                      grid = new Slick.Grid("#container", data, columns, options);
+
+                      grid.onAddNewRow.subscribe(function (e, args) {
+                          var item = args.item;
+                          var column = args.column;
+                          grid.invalidateRow(data.length);
+                          data.push(item);
+                          grid.updateRowCount();
+                          grid.render();
+                      });
+
+
+                      grid.onValidationError.subscribe(function (e, args) {
+                          // handle validation errors originating from the CompositeEditor
+                          if (args.editor && (args.editor instanceof Slick.CompositeEditor)) {
+                              var err;
+                              var idx = args.validationResults.errors.length;
+                              while (idx--) {
+                                  err = args.validationResults.errors[idx];
+                                  $(err.container).stop(true, true).effect("highlight", {color: "red"});
+                              }
+                          }
+                      });
+                      grid.onSort.subscribe(function (e, args) {
+                          var cols = args.sortCols;
+
+                          data.sort(function (dataRow1, dataRow2) {
+                              for (var i = 0, l = cols.length; i < l; i++) {
+                                  var field = cols[i].sortCol.field;
+                                  var sign = cols[i].sortAsc ? 1 : -1;
+                                  var value1 = dataRow1[field], value2 = dataRow2[field];
+                                  var result = (value1 == value2 ? 0 : (value1 > value2 ? 1 : -1)) * sign;
+                                  if (result != 0) {
+                                      return result;
+                                  }
+                              }
+                              return 0;
+                          });
+                          grid.invalidate();
+                          grid.render();
+                      });
+                      grid.setActiveCell(0, 0);
+                  });
+              })
+              .fail(function( jqxhr, textStatus, error ) {
+                  var err = textStatus + ", " + error;
+                  console.log( "Request Failed: " + err );
+              });
+
+  })
+
+</script>
+<script type="text/javascript">
+function updateData(){
+    var sum = 0;
+    var field = new Array();
+    var value="";
+    var newvalue = "";
+    var num = 0;
+    for(var m = 0; m< 7;m++){
+        field[m] = columns[m].name;
+    }
+    for(var j = 0; j< grid.getDataLength();j++){
+
+        if(!isNaN(grid.getDataItem(j)["id"])){
+            sum++;
+            for(var m = 0; m< 7;m++){
+                value = value+grid.getDataItem(j)[columns[m].field];
+                if(m!=6){
+                    value = value+",";
+                }
+            }
+            if(j< grid.getDataLength()-1){
+                value = value+"@";
+            }
+        }
+        else{
+            num++;
+            for(var m = 0; m< 7;m++){
+                if(grid.getDataItem(j)[columns[m].field]===undefined)
+                {
+                    newvalue = newvalue + "";
+                    if(m!=6){
+                        newvalue = newvalue+",";
+                    }
+                }else{
+                    newvalue = newvalue + grid.getDataItem(j)[columns[m].field];
+                    if(m!=6){
+                        newvalue = newvalue+",";
+                    }
+                }
+            }
+            if(j< grid.getDataLength()-1){
+                newvalue = newvalue+"@";
+            }
+
+        }
+
+    }
+
+    if(newvalue!=""){
+        //insert
+        insertAllData(num,7,field,newvalue);
+    }
+    alert(value);
+    updateAllData(sum,7,field,value);
+    window.location.reload();
+    //alert(columns[grid.getActiveCell().cell].name);
+    //alert(grid.getDataItem(grid.getActiveCell().row)["id"]);
+    //alert(grid.getDataItem(grid.getActiveCell().row)[columns[grid.getActiveCell().cell].field]);
+
+
+}
+/* function save(){
+            $.getJSON( "getinteraction/11" )
+                    .done(function( json ) {
+                        console.log( "JSON Data: " + json );
+                       $.each(json, function(i, field) {
+                           var interid = field.id ;
+                           alert(field.motion);
+
+                               $.ajax({
+                                   type: "POST",
+                                   url: "/update/"+field.objectrecord+"&"+field.fieldd+"&"+field.value
+
+                               })
+                                       .done(function( msg ) {
+                                           alert( "Data Saved: " + msg );
+                                           alert(interid);
+
+
+                                       })
+
+
+                       })
+
+                        alert("saved");
+
+                        //window.location.reload();
+
+
+                    })
+
+                    .fail(function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    });
+    }*/
+
+    function del(){
+    //alert(grid.getDataItem(grid.getActiveCell().row)["id"]);
+        $.ajax({
+            type: "POST",
+            url: "/deletel/"+grid.getDataItem(grid.getActiveCell().row)["id"]
+
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+
+                });
+        window.location.reload();
+ }
+</script>
+</body>
+</html>

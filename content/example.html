@@ -1,0 +1,335 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <title>SlickGrid example 3: Editing</title>
+  <link rel="stylesheet" href="../slick.grid.css" type="text/css"/>
+  <link rel="stylesheet" href="../css/smoothness/jquery-ui-1.8.16.custom.css" type="text/css"/>
+  <link rel="stylesheet" href="examples.css" type="text/css"/>
+  <style>
+    .cell-title {
+      font-weight: bold;
+    }
+
+    .cell-effort-driven {
+      text-align: center;
+    }
+  </style>
+ <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: White;
+      overflow: auto;
+    }
+
+    body {
+      font: 11px Helvetica, Arial, sans-serif;
+    }
+
+    #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    #description {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      width: 25em;
+      background: beige;
+      border: solid 1px gray;
+      z-index: 1000;
+    }
+
+    #description h2 {
+      padding-left: 0.5em;
+    }
+  </style>
+
+
+    <script src="../lib/firebugx.js"></script>
+<script src="../lib/jquery-1.8.2.min.js"></script>
+<script src="../lib/jquery-1.7.min.js"></script>
+<script src="../lib/jquery-ui-1.8.16.custom.min.js"></script>
+<script src="../lib/jquery.event.drag-2.2.js"></script>
+<script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+
+<script src="../slick.core.js"></script>
+<script src="../plugins/slick.cellrangeselector.js"></script>
+<script src="../plugins/slick.cellselectionmodel.js"></script>
+<script src="../slick.formatters.js"></script>
+<script src="../slick.editors.js"></script>
+<script src="../slick.grid.js"></script>
+<script src="slick.compositeeditor.js"></script>
+    <script>
+
+        function InsertByLong(field, value)
+        {
+            $.ajax({
+                type: "POST",
+                url: "/insert/"+field+"&"+value
+
+            })
+                    .done(function( msg ) {
+                        alert( "Data Saved: " + msg );
+                    });
+        }
+
+        function loadXMLDocdelete(id)
+        {
+            $.ajax({
+                type: "POST",
+                url: "/deletel/"+id
+
+            })
+                    .done(function( msg ) {
+                        alert( "Data Saved: " + msg );
+                    });
+        }
+
+        function update(id,value,table,field ) {  //table need to be set
+
+            $.ajax({
+                type: "POST",
+                url: "/update/"+id+"&"+field+"&"+value
+
+            })
+                    .done(function( msg ) {
+                        alert( "Data Saved: " + msg );
+                    });
+        }
+        function loadXMLDocupdate(field)
+        {
+            var id = $("#id").val();
+            var value = "";
+            if( field=="Long_text") {
+                value = $("#long").val();
+            } else if (field=="Short_text") {
+                value = $("#short").val();
+            }else if (field=="Number") {
+                value = $("#number").val();
+            }else if (field=="Categories") {
+                value = $("#Categories").val();
+            }else if (field=="Date") {
+                value = $("#Date").val();
+            }else if (field=="URL") {
+                value = $("#URL").val();
+            }else if (field=="Image") {
+                value = $("#Image").val();
+            }
+            $.ajax({
+                type: "POST",
+                url: "/update/"+id+"&"+field+"&"+value
+
+            })
+                    .done(function( msg ) {
+                        alert( "Data Saved: " + msg );
+                    });
+        }
+    </script>
+
+
+  <script>
+      function requiredFieldValidator(value) {
+          if (value == null || value == undefined || !value.length) {
+              return {valid: false, msg: "This is a required field"};
+          } else {
+              return {valid: true, msg: null};
+          }
+      }
+
+      var grid;
+      var data = [];
+      var columns = [
+          {id: "id", name: "ID", field: "id", width: 120, cssClass: "cell-title", sortable: true },
+          {id: "long", name: "Long_text", field: "ll", width: 100, editor: Slick.Editors.LongText},
+          {id: "short", name: "Short_text", field: "short", editor: Slick.Editors.Text},
+          {id: "number", name: "Number", field: "number", width: 80, editor: Slick.Editors.Text, sortable: true },
+          {id: "image", name: "Image", field: "image", minWidth: 60, editor: Slick.Editors.Text},
+          {id: "date", name: "Date", field: "date", minWidth: 60, editor: Slick.Editors.Date,formatter: dateFormatter,  sortable: true },
+          {id: "ca", name: "Categories", width: 120,field: "ca", editor: Slick.Editors.Text},
+          {id: "url", name: "ULR", width: 120,field: "url", editor: Slick.Editors.Text}
+      ];
+      function dayFormatter(row, cell, value, columnDef, dataContext) {
+          return value + ' days';
+      }
+
+      function dateFormatter(row, cell, value, columnDef, dataContext) {
+          return value.getMonth() + '/' + value.getDate() + '/' + value.getFullYear();
+      }
+      var options = {
+          editable: true,
+          enableAddRow: true,
+          multiColumnSort: true,
+          enableCellNavigation: true,
+          enableColumnReorder: false,
+          asyncEditorLoading: false,
+          autoEdit: false,
+          editCommandHandler: queueAndExecuteCommand
+      };
+
+      var commandQueue = [];
+
+      function queueAndExecuteCommand(item, column, editCommand) {
+          commandQueue.push(editCommand);
+          editCommand.execute();
+      }
+
+      function undo() {
+          var command = commandQueue.pop();
+          if (command && Slick.GlobalEditorLock.cancelCurrentEdit()) {
+              command.undo();
+              grid.gotoCell(command.row, command.cell, false);
+          }
+      }
+
+      $(function () {
+          var j = 0;
+          $.getJSON( "list" )
+                  .done(function( json ) {
+                      console.log( "JSON Data: " + json );
+                      $.each(json, function(i, field) {
+                          // $( "#list").append("<h3>record:<BR/>ID:" + field.ID +"  Long_text:" + field.Long_text +"  Short_text:" + field.Short_text +"  Number:" + field.Number +"  Image:" + field.Image +"  Date:" + field.Date +"  Categories:" + field.Categories +"  URL:" +field.URL +"</h3></br>");
+                          var d = (data[j] = {});
+                          d["id"] = field.ID;
+                          d["ll"] = field.Long_text;
+                          d["short"] = field.Short_text;
+                          d["number"] = field.Number;
+                          d["image"] = field.Image;
+                          d["date"] = new Date(field.Date);
+                          d["ca"] =field.Categories;
+                          d["url"] =field.URL;
+                          j++;
+
+                          grid = new Slick.Grid("#container", data, columns, options);
+                          grid.onAddNewRow.subscribe(function (e, args) {
+                              var item = args.item;
+                              var column = args.column;
+                              grid.invalidateRow(data.length);
+                              data.push(item);
+                              grid.updateRowCount();
+                              grid.render();
+                          });
+                          grid.onSort.subscribe(function (e, args) {
+                              var cols = args.sortCols;
+
+                              data.sort(function (dataRow1, dataRow2) {
+                                  for (var i = 0, l = cols.length; i < l; i++) {
+                                      var field = cols[i].sortCol.field;
+                                      var sign = cols[i].sortAsc ? 1 : -1;
+                                      var value1 = dataRow1[field], value2 = dataRow2[field];
+                                      var result = (value1 == value2 ? 0 : (value1 > value2 ? 1 : -1)) * sign;
+                                      if (result != 0) {
+                                          return result;
+                                      }
+                                  }
+                                  return 0;
+                              });
+                              grid.invalidate();
+                              grid.render();
+                          });
+                      });
+                  })
+                  .fail(function( jqxhr, textStatus, error ) {
+                      var err = textStatus + ", " + error;
+                      console.log( "Request Failed: " + err );
+                  });
+
+
+      })
+  </script>
+
+  <script type="text/javascript">
+
+      $(function(){
+          $("#save").click(function(){
+              $.getJSON("../json/userinfo.json",function(data){
+                  $.each(data,function(infoIndex,info){
+                     // alert(info["operatorID"]+":"+info["operation"]);
+                      if(info["operatorID"]=="011")  //011 stand for the current userID
+                          $.each(info["operation"],function(infoIndex,info){
+                              //alert(info["value"]);
+                              var motion = info["motion"];
+                              var table = info["table"];
+                              var objectrecord = info["objectrecord"];
+                              var column = info["column"];
+                              var value = info["value"];
+                              if(motion=="update"){
+                                  update(objectrecord,value,table,column );
+                              }
+                              else if(motion=="insert"){
+                                  InsertByLong(column,value);
+                              }
+                              else if(motion=="delete"){
+                                  loadXMLDocdelete(objectrecord);
+                              }
+                          })
+                  })
+              })
+          })
+
+      })
+  </script>
+</head>
+<body>
+
+<div id="container"></div>
+<div id="description">
+  <h2>Demonstrates:</h2>
+    <div id = "get"></div>
+  <ul>
+    <li>instructor1</li>
+    <li>instructor2</li>
+    <li>instructor3</li>
+  </ul>
+    <h2>View Source:</h2>
+    <button onclick="undo()"><img src="../images/arrow_undo.png" align="absmiddle"> Undo</button>
+    <input type="button" value="save" id="save"/>
+    <h2>Connect to MySQL:</h2>
+    INSERT</BR>
+    long_text: <input id = "long" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Long_text')">insert long_text</button>
+    <br/>
+    short_text: <input id = "short" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Short_text')">insert short_text</button>
+    <br/>
+    number: <input id = "number" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Number')">insert by Number</button>
+    </BR>
+    Categories: <input id = "Categories" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Categories')">insert Categories</button>
+    </BR>
+    Date: <input id = "Date" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Date')">insert Date</button>
+    </BR>
+    URL: <input id = "URL" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('URL')">insert URL</button>
+    </BR>
+    Image: <input id = "Image" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="InsertByLong('Image')">insert by Image</button>
+    </BR>
+
+    delete</BR>
+    id: <input id = "id" type="text" style="overflow:visible" size="10" maxlength="50">
+    <button type="button" onclick="loadXMLDocdelete()">delete by id</button>
+    <br/>
+
+
+    update</BR>
+
+    <button type="button" onclick="loadXMLDocupdate('Long_text')">update by Long_text</button>
+    <button type="button" onclick="loadXMLDocupdate('Short_text')">update by Short_text</button>
+    <button type="button" onclick="loadXMLDocupdate('Number')">update by Number</button>
+    <button type="button" onclick="loadXMLDocupdate('Date')">update by Date</button>
+    <button type="button" onclick="loadXMLDocupdate('URL')">update by URL</button>
+    <button type="button" onclick="loadXMLDocupdate('Image')">update by Image</button>
+    <button type="button" onclick="loadXMLDocupdate('Categories')">update by Categories</button>
+</div>
+
+
+</body>
+</html>

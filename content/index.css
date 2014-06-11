@@ -1,0 +1,74 @@
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #7183aa;
+}
+div.friends {
+    background-color: #FFF;
+    border: solid black 1pt;
+    width: auto;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 12px;
+}
+div.conbinde {
+
+    float: left;
+
+}
+div.content {
+    background-color: #FFF;
+    border: solid black 1pt;
+    float: left;
+    width: auto;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 12px;
+}
+div.twitter {
+    background-color: #FFF;
+    border: solid black 1pt;
+    width: auto;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 12px;
+}
+div.project {
+    background-color: #FFF;
+    border: solid black 1pt;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    height: 130px;
+}
+div.user {
+    border: solid grey 1pt;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px;
+    width: 300px;
+    float: left;
+}
+div.option {
+    border: solid grey 1pt;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px;
+    width: 300px;
+    height: 50%;
+    float: right;
+}
+.list_section {
+    border: solid grey 1pt;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px;
+    width: 300px;
+}
+.card_section {
+    border: solid grey 1pt;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px;
+}
