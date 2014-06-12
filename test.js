@@ -244,23 +244,14 @@ function insertAllData(req, res){
     }
 }
 function updateAllData(req, res) {
-    //var data = new Array();
-    var columnname = req.params.field.split(",");
-    var valuerow = new Array();
-    valuerow=  req.params.value.split("@");
-    var values = new Array();
-
-     for(var n = 0; n< req.params.sum; n++){
-            values[n]= valuerow[n].split(",");
-    }
-    var cmd;
-    for(var n = 0; n< req.params.sum; n++){
+        var name =  req.params.field.split(",");
+        var values = req.params.value.split(",");
         for(var m = 1; m< req.params.column; m++){
-            if(m==3&&values[n][m]){
-                values[n][m] = 0;
+            if(m==3&&req.params.value[m]==null){
+                req.params.value[m] = 0;
             }
 
-                cmd = 'UPDATE axis SET ' + columnname[m] + ' = "' +  values[n][m] + '" WHERE id = ' +  values[n][0];
+                cmd = 'UPDATE axis SET ' + name[m] + ' = "' + values[m] + '" WHERE id = ' +  req.params.id;
                 console.log(cmd);
 
                 db.query(cmd, function(err, rows, fields){
@@ -272,7 +263,6 @@ function updateAllData(req, res) {
 
     }
 
-}
 }
 
 //database interact is used to record all the interactions of users.
@@ -358,7 +348,7 @@ app.get('/get/:id', get);
 app.post('/insert/:field&:value', insert);
 app.post('/deletel/:id', deletel);
 app.post('/update/:id&:field&:value', update);
-app.post('/updateall/:sum&:column&:field&:value', updateAllData);
+app.post('/updateall/:sum&:column&:field&:value&:id', updateAllData);
 app.post('/insertall/:sum&:column&:field&:value', insertAllData);
 
 //interaction
