@@ -235,7 +235,104 @@
                 });
     }
 
+    function updateData(){
+        //alert(grid.getDataItem(grid.getActiveCell().row)[columns[grid.getActiveCell().cell].field]);
+        var sum = 0;
+        var field = new Array();
+        var value="";
+        var newvalue = "";
+        var num = 0;
+        for(var m = 0; m< 7;m++){
+            field[m] = columns[m].name;
+        }
+        for(var j = 0; j< grid.getDataLength();j++){
+
+            if(!isNaN(grid.getDataItem(j)["id"])){
+                sum++;
+                for(var m = 0; m< 7;m++){
+                    value = value+grid.getDataItem(j)[columns[m].field];
+                    if(m!=6){
+                        value = value+",";
+                    }
+                }
+                if(j< grid.getDataLength()-1){
+                    value = value+"@";
+                }
+            }
+            else{
+                num++;
+                for(var m = 0; m< 7;m++){
+                    if(grid.getDataItem(j)[columns[m].field]===undefined)
+                    {
+                        newvalue = newvalue + "";
+                        if(m!=6){
+                            newvalue = newvalue+",";
+                        }
+                    }else{
+                        newvalue = newvalue + grid.getDataItem(j)[columns[m].field];
+                        if(m!=6){
+                            newvalue = newvalue+",";
+                        }
+                    }
+                }
+                if(j< grid.getDataLength()-1){
+                    newvalue = newvalue+"@";
+                }
+
+            }
+
+        }
+
+        if(newvalue!=""){
+            //insert
+            alert(newvalue);
+            insertAllData(num,7,field,newvalue);
+        }
+        alert(value);
+        updateAllData(sum,7,field,value);
+        //window.location.reload();
+        //alert(columns[grid.getActiveCell().cell].name);
+        //alert(grid.getDataItem(grid.getActiveCell().row)["id"]);
+    }
+    /* function save(){
+     $.getJSON( "getinteraction/11" )
+     .done(function( json ) {
+     console.log( "JSON Data: " + json );
+     $.each(json, function(i, field) {
+     var interid = field.id ;
+     alert(field.motion);
+     $.ajax({
+     type: "POST",
+     url: "/update/"+field.objectrecord+"&"+field.fieldd+"&"+field.value
+     })
+     .done(function( msg ) {
+     alert( "Data Saved: " + msg );
+     alert(interid);
+     })
+     })
+     alert("saved");
+     //window.location.reload();
+     })
+     .fail(function( jqxhr, textStatus, error ) {
+     var err = textStatus + ", " + error;
+     console.log( "Request Failed: " + err );
+     });
+     }*/
+
+    function del(){
+        $.ajax({
+            type: "POST",
+            url: "/deletel/"+grid.getDataItem(grid.getActiveCell().row)["id"]
+
+        })
+                .done(function( msg ) {
+                    alert( "Data Saved: " + msg );
+
+                });
+        //window.location.reload();
+    }
 </script>
+<!--functions in SlickGrid-->
 <script>
   function requiredFieldValidator(value) {
     if (value == null || value == undefined || !value.length) {
@@ -289,11 +386,9 @@
   }
 
   function openDetails() {
-
     if (grid.getEditorLock().isActive() && !grid.getEditorLock().commitCurrentEdit()) {
       return;
     }
-
     var $modal = $("<div class='item-details-form'></div>");
 
     $modal = $("#itemDetailsTemplate")
@@ -322,7 +417,6 @@
     $modal.find("[data-action=cancel]").click(function () {
       grid.getEditController().cancelCurrentEdit();
     });
-
 
     var containers = $.map(columns, function (c) {
       return $modal.find("[data-editorid=" + c.id + "]");
@@ -368,7 +462,6 @@
                           grid.render();
                       });
 
-
                       grid.onValidationError.subscribe(function (e, args) {
                           // handle validation errors originating from the CompositeEditor
                           if (args.editor && (args.editor instanceof Slick.CompositeEditor)) {
@@ -405,120 +498,8 @@
                   var err = textStatus + ", " + error;
                   console.log( "Request Failed: " + err );
               });
-
   })
-
 </script>
-<script type="text/javascript">
-function updateData(){
-    var sum = 0;
-    var field = new Array();
-    var value="";
-    var newvalue = "";
-    var num = 0;
-    for(var m = 0; m< 7;m++){
-        field[m] = columns[m].name;
-    }
-    for(var j = 0; j< grid.getDataLength();j++){
 
-        if(!isNaN(grid.getDataItem(j)["id"])){
-            sum++;
-            for(var m = 0; m< 7;m++){
-                value = value+grid.getDataItem(j)[columns[m].field];
-                if(m!=6){
-                    value = value+",";
-                }
-            }
-            if(j< grid.getDataLength()-1){
-                value = value+"@";
-            }
-        }
-        else{
-            num++;
-            for(var m = 0; m< 7;m++){
-                if(grid.getDataItem(j)[columns[m].field]===undefined)
-                {
-                    newvalue = newvalue + "";
-                    if(m!=6){
-                        newvalue = newvalue+",";
-                    }
-                }else{
-                    newvalue = newvalue + grid.getDataItem(j)[columns[m].field];
-                    if(m!=6){
-                        newvalue = newvalue+",";
-                    }
-                }
-            }
-            if(j< grid.getDataLength()-1){
-                newvalue = newvalue+"@";
-            }
-
-        }
-
-    }
-
-    if(newvalue!=""){
-        //insert
-        insertAllData(num,7,field,newvalue);
-    }
-    alert(value);
-    updateAllData(sum,7,field,value);
-    window.location.reload();
-    //alert(columns[grid.getActiveCell().cell].name);
-    //alert(grid.getDataItem(grid.getActiveCell().row)["id"]);
-    //alert(grid.getDataItem(grid.getActiveCell().row)[columns[grid.getActiveCell().cell].field]);
-
-
-}
-/* function save(){
-            $.getJSON( "getinteraction/11" )
-                    .done(function( json ) {
-                        console.log( "JSON Data: " + json );
-                       $.each(json, function(i, field) {
-                           var interid = field.id ;
-                           alert(field.motion);
-
-                               $.ajax({
-                                   type: "POST",
-                                   url: "/update/"+field.objectrecord+"&"+field.fieldd+"&"+field.value
-
-                               })
-                                       .done(function( msg ) {
-                                           alert( "Data Saved: " + msg );
-                                           alert(interid);
-
-
-                                       })
-
-
-                       })
-
-                        alert("saved");
-
-                        //window.location.reload();
-
-
-                    })
-
-                    .fail(function( jqxhr, textStatus, error ) {
-                        var err = textStatus + ", " + error;
-                        console.log( "Request Failed: " + err );
-                    });
-    }*/
-
-    function del(){
-    //alert(grid.getDataItem(grid.getActiveCell().row)["id"]);
-        $.ajax({
-            type: "POST",
-            url: "/deletel/"+grid.getDataItem(grid.getActiveCell().row)["id"]
-
-        })
-                .done(function( msg ) {
-                    alert( "Data Saved: " + msg );
-
-                });
-        window.location.reload();
- }
-</script>
 </body>
 </html>
